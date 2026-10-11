@@ -4,6 +4,20 @@ from pathlib import Path
 from app.database.session import engine, SessionLocal, Base
 from app.models.entities import Place, User, Preference
 
+def find_seed_file() -> Path | None:
+    current_dir = Path(__file__).resolve().parent
+    candidates = [
+        current_dir.parent.parent / "data" / "seed" / "places_goa.json", # backend/data/seed/
+        current_dir.parent.parent.parent / "data" / "seed" / "places_goa.json", # repo_root/data/seed/
+        Path("data/seed/places_goa.json"),
+        Path("backend/data/seed/places_goa.json"),
+        Path("../data/seed/places_goa.json"),
+    ]
+    for p in candidates:
+        if p.exists():
+            return p
+    return None
+
 def init_db():
     # 1. Create tables
     Base.metadata.create_all(bind=engine)
@@ -13,15 +27,8 @@ def init_db():
     try:
         existing_count = db.query(Place).count()
         if existing_count == 0:
-            # Locate seed file
-            current_file = Path(__file__).resolve()
-            seed_file = current_file.parents[3] / "data" / "seed" / "places_goa.json"
-            
-            if not seed_file.exists():
-                # Fallback location
-                seed_file = Path("data/seed/places_goa.json")
-            
-            if seed_file.exists():
+            seed_file = find_seed_file()
+            if seed_file and seed_file.exists():
                 with open(seed_file, "r", encoding="utf-8") as f:
                     places_data = json.load(f)
                 
@@ -46,7 +53,7 @@ def init_db():
                 db.commit()
                 print(f"[Nexora DB] Successfully seeded {len(places_data)} places into database.")
             else:
-                print(f"[Nexora DB Warning] Seed file not found at {seed_file}")
+                print(f"[Nexora DB Warning] Seed file could not be located.")
         else:
             print(f"[Nexora DB] Database already contains {existing_count} places.")
             
@@ -59,8 +66,7 @@ def init_db():
             
     except Exception as e:
         db.rollback()
-        print(f"[Nexora DB Error] Database initialization failed: {e}")
-        raise e
+        print(f"[Nexora DB Error] Database initialization warning: {e}")
     finally:
         db.close()
 
