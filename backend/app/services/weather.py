@@ -20,7 +20,7 @@ class WeatherService:
                 "latitude": latitude,
                 "longitude": longitude,
                 "daily": ["temperature_2m_max", "temperature_2m_min", "precipitation_probability_max", "weather_code"],
-                "timezone": "Asia/Kolkata",
+                "timezone": "auto",
                 "forecast_days": max(3, min(days, 14))
             }
             with httpx.Client(timeout=4.0) as client:

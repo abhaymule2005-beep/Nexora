@@ -12,6 +12,8 @@ from app.services.budget_engine import budget_engine
 from app.services.weather import weather_service
 from app.services.validator import itinerary_validator
 
+from app.services.world_places import world_place_service
+
 class TripPlannerService:
     """
     Core orchestrator:
@@ -23,13 +25,14 @@ class TripPlannerService:
         request: TripRequest,
         save_to_db: bool = True
     ) -> ItineraryResponse:
-        # 1. Fetch available places for destination
+        # 1. Fetch available places for destination, or dynamically generate for any world location
         all_places = db.query(Place).filter(Place.destination.ilike(f"%{request.destination}%")).all()
+        if len(all_places) < 4:
+            all_places = world_place_service.get_or_create_places(db, request.destination)
         if not all_places:
             all_places = db.query(Place).all()
 
         # 2. Get top ranked candidates
-        # For N days, we need ~ 3-4 places per day = N * 3.5 candidates
         target_candidate_count = min(len(all_places), max(6, request.days * 4))
         recommendations = recommendation_engine.get_recommendations(
             all_places, request, top_k=target_candidate_count
@@ -39,7 +42,6 @@ class TripPlannerService:
         place_reasons = {r.place.id: (r.reasons[0] if r.reasons else "Recommended for you") for r in recommendations}
 
         # 3. Distribute candidates across days (geographic & thematic clustering)
-        # Sort by latitude to group North Goa, Central Panaji, and South Goa
         ranked_places.sort(key=lambda p: p.latitude, reverse=True)
 
         activities_per_day = 3 if request.travel_style == "relaxed" else 4
@@ -50,8 +52,10 @@ class TripPlannerService:
             if len(days_buckets[day_idx]) < activities_per_day:
                 days_buckets[day_idx].append(place)
 
-        # 4. Fetch Weather Forecast
-        forecasts = weather_service.get_forecast(days=request.days)
+        # 4. Fetch Weather Forecast using the actual destination coordinates!
+        dest_lat = all_places[0].latitude if all_places else 15.4989
+        dest_lon = all_places[0].longitude if all_places else 73.8315
+        forecasts = weather_service.get_forecast(latitude=dest_lat, longitude=dest_lon, days=request.days)
 
         # 5. Route optimize and schedule each day
         day_plans: List[DayPlan] = []
