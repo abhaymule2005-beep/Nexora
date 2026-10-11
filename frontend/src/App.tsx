@@ -16,17 +16,14 @@ export function App() {
   const [isBenchmarkOpen, setIsBenchmarkOpen] = useState(false);
 
   // Probe backend on mount
-  useEffect(() => {
+  const refreshHealth = () => {
     checkHealth()
-      .then((data) => {
-        if (data.status === "ok") {
-          setBackendOnline(true);
-        }
-      })
-      .catch((err) => {
-        console.warn("Backend not yet responding:", err);
-        setBackendOnline(false);
-      });
+      .then((data) => setBackendOnline(data.status === "ok"))
+      .catch(() => setBackendOnline(false));
+  };
+
+  useEffect(() => {
+    refreshHealth();
   }, []);
 
   const handleGenerate = async (params: TripRequestParams) => {
@@ -34,8 +31,8 @@ export function App() {
     try {
       const generated = await generateItinerary(params);
       setItinerary(generated);
-    } catch (err) {
-      alert("Error generating itinerary: " + err);
+    } catch (err: any) {
+      alert("Error generating itinerary: " + (err.message || err));
     } finally {
       setIsLoading(false);
     }
@@ -50,6 +47,7 @@ export function App() {
       <Navbar
         backendOnline={backendOnline}
         onOpenBenchmark={() => setIsBenchmarkOpen(true)}
+        onRefreshHealth={refreshHealth}
       />
 
       <main style={{ flex: 1, maxWidth: "1280px", margin: "0 auto", padding: "32px 24px", width: "100%" }}>

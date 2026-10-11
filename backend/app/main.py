@@ -22,11 +22,11 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# Enable CORS for frontend Vite client
+# Enable permissive CORS for Vercel, localhost, and mobile clients
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
+    allow_origin_regex=".*",
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
