@@ -12,5 +12,5 @@ services:
         value: production
       - key: DATABASE_URL
         value: sqlite:///./nexora.db
-      - key: PORT
-        value: 10000
+      - key: PYTHON_VERSION
+        value: 3.10.14
