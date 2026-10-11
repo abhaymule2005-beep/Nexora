@@ -49,7 +49,9 @@ function MapUpdater({ activities }: { activities: Activity[] }) {
 }
 
 export const TripMap: React.FC<TripMapProps> = ({ activities }) => {
-  const defaultCenter: [number, number] = [15.4989, 73.8315];
+  const defaultCenter: [number, number] = activities.length > 0
+    ? [activities[0].place.latitude, activities[0].place.longitude]
+    : [15.4989, 73.8315];
   const polylineCoords: [number, number][] = activities.map((a) => [
     a.place.latitude,
     a.place.longitude,

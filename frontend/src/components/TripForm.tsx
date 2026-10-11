@@ -11,17 +11,29 @@ const INTERESTS_LIST = [
   "Beach", "History", "Nature", "Museum", "Food", "Shopping", "Culture", "Entertainment"
 ];
 
+const PRESET_DESTINATIONS = [
+  { value: "Goa", label: "Goa, India (Beaches & Forts)" },
+  { value: "Jaipur", label: "Jaipur, Rajasthan (Palaces & Forts)" },
+  { value: "Kerala", label: "Kerala (Backwaters & Tea Hills)" },
+  { value: "Mumbai", label: "Mumbai, Maharashtra (Coastal City)" },
+  { value: "Manali", label: "Manali, Himachal (Himalayan Valley)" },
+  { value: "custom", label: "✨ Custom (Enter any destination...)" },
+];
+
 export const TripForm: React.FC<TripFormProps> = ({ onGenerate, isLoading }) => {
   const [nlQuery, setNlQuery] = useState(
     "I am going to Goa for 5 days with my parents. My budget is ₹40,000. We like beaches and historical places. We don't want too much walking."
   );
-  const [destination, setDestination] = useState("Goa");
+  const [destinationChoice, setDestinationChoice] = useState("Goa");
+  const [customDestination, setCustomDestination] = useState("");
   const [days, setDays] = useState(5);
   const [budget, setBudget] = useState(40000);
   const [travelers, setTravelers] = useState(3);
   const [walkingTolerance, setWalkingTolerance] = useState("low");
   const [travelStyle, setTravelStyle] = useState("relaxed");
   const [selectedInterests, setSelectedInterests] = useState<string[]>(["Beach", "History"]);
+
+  const effectiveDestination = destinationChoice === "custom" ? (customDestination.trim() || "Goa") : destinationChoice;
 
   const handleInterestToggle = (interest: string) => {
     setSelectedInterests((prev) =>
@@ -30,7 +42,8 @@ export const TripForm: React.FC<TripFormProps> = ({ onGenerate, isLoading }) => 
   };
 
   const applyPreset = (presetType: string) => {
-    if (presetType === "demo1") {
+    if (presetType === "goa") {
+      setDestinationChoice("Goa");
       setNlQuery("I am going to Goa for 5 days with my parents. My budget is ₹40,000. We like beaches and historical places. We don't want too much walking.");
       setDays(5);
       setBudget(40000);
@@ -38,29 +51,40 @@ export const TripForm: React.FC<TripFormProps> = ({ onGenerate, isLoading }) => 
       setWalkingTolerance("low");
       setTravelStyle("relaxed");
       setSelectedInterests(["Beach", "History"]);
-    } else if (presetType === "demo2") {
-      setNlQuery("A 3-day cultural and museum trip in Goa on a ₹20,000 budget exploring Portuguese heritage and art.");
+    } else if (presetType === "jaipur") {
+      setDestinationChoice("Jaipur");
+      setNlQuery("3-day royal heritage trip to Jaipur exploring Amber Fort, Hawa Mahal, local handicrafts, and authentic Rajasthani dining with ₹25,000 budget.");
+      setDays(3);
+      setBudget(25000);
+      setTravelers(2);
+      setWalkingTolerance("moderate");
+      setTravelStyle("relaxed");
+      setSelectedInterests(["History", "Culture", "Food"]);
+    } else if (presetType === "kerala") {
+      setDestinationChoice("Kerala");
+      setNlQuery("4-day scenic trip to Kerala covering Alleppey backwaters houseboat, Munnar tea hills, and Fort Kochi on a ₹35,000 budget.");
+      setDays(4);
+      setBudget(35000);
+      setTravelers(2);
+      setWalkingTolerance("low");
+      setTravelStyle("relaxed");
+      setSelectedInterests(["Nature", "Culture", "Food"]);
+    } else if (presetType === "mumbai") {
+      setDestinationChoice("Mumbai");
+      setNlQuery("A 3-day vibrant trip in Mumbai covering Marine Drive, Gateway of India, museums, and Colaba street shopping with ₹20,000 budget.");
       setDays(3);
       setBudget(20000);
       setTravelers(2);
       setWalkingTolerance("moderate");
       setTravelStyle("relaxed");
-      setSelectedInterests(["Museum", "Culture", "History"]);
-    } else if (presetType === "demo3") {
-      setNlQuery("4-day nature and spice plantation getaway in Goa with ₹35,000 budget, relaxed pace.");
-      setDays(4);
-      setBudget(35000);
-      setTravelers(2);
-      setWalkingTolerance("moderate");
-      setTravelStyle("relaxed");
-      setSelectedInterests(["Nature", "Food", "Beach"]);
+      setSelectedInterests(["History", "Museum", "Shopping"]);
     }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onGenerate({
-      destination,
+      destination: effectiveDestination,
       days,
       budget,
       travelers,
@@ -84,29 +108,36 @@ export const TripForm: React.FC<TripFormProps> = ({ onGenerate, isLoading }) => 
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "18px", flexWrap: "wrap", gap: "10px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
           <Sparkles size={18} color="#2563eb" />
-          <span style={{ fontSize: "14px", fontWeight: "600", color: "#1e293b" }}>Quick Demo Scenarios:</span>
+          <span style={{ fontSize: "14px", fontWeight: "600", color: "#1e293b" }}>Quick Destination Presets:</span>
         </div>
         <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
           <button
             type="button"
-            onClick={() => applyPreset("demo1")}
-            style={{ fontSize: "12px", background: "#f1f5f9", padding: "6px 12px", color: "#334155" }}
+            onClick={() => applyPreset("goa")}
+            style={{ fontSize: "12px", background: destinationChoice === "Goa" ? "#eff6ff" : "#f1f5f9", padding: "6px 12px", color: "#334155", border: destinationChoice === "Goa" ? "1px solid #2563eb" : "none" }}
           >
-            🏖️ Demo 1: Goa 5-Day (Family Relaxed)
+            🏖️ Goa (5-Day Relaxed)
           </button>
           <button
             type="button"
-            onClick={() => applyPreset("demo2")}
-            style={{ fontSize: "12px", background: "#f1f5f9", padding: "6px 12px", color: "#334155" }}
+            onClick={() => applyPreset("jaipur")}
+            style={{ fontSize: "12px", background: destinationChoice === "Jaipur" ? "#eff6ff" : "#f1f5f9", padding: "6px 12px", color: "#334155", border: destinationChoice === "Jaipur" ? "1px solid #2563eb" : "none" }}
           >
-            🏛️ Demo 2: 3-Day Culture & Heritage
+            🏰 Jaipur (3-Day Royal Forts)
           </button>
           <button
             type="button"
-            onClick={() => applyPreset("demo3")}
-            style={{ fontSize: "12px", background: "#f1f5f9", padding: "6px 12px", color: "#334155" }}
+            onClick={() => applyPreset("kerala")}
+            style={{ fontSize: "12px", background: destinationChoice === "Kerala" ? "#eff6ff" : "#f1f5f9", padding: "6px 12px", color: "#334155", border: destinationChoice === "Kerala" ? "1px solid #2563eb" : "none" }}
           >
-            🌿 Demo 3: Nature & Spice Farms
+            🛶 Kerala (4-Day Backwaters)
+          </button>
+          <button
+            type="button"
+            onClick={() => applyPreset("mumbai")}
+            style={{ fontSize: "12px", background: destinationChoice === "Mumbai" ? "#eff6ff" : "#f1f5f9", padding: "6px 12px", color: "#334155", border: destinationChoice === "Mumbai" ? "1px solid #2563eb" : "none" }}
+          >
+            🏙️ Mumbai (3-Day Coastal)
           </button>
         </div>
       </div>
@@ -121,7 +152,7 @@ export const TripForm: React.FC<TripFormProps> = ({ onGenerate, isLoading }) => 
             rows={3}
             value={nlQuery}
             onChange={(e) => setNlQuery(e.target.value)}
-            placeholder="E.g. I am going to Goa for 5 days with my parents. My budget is ₹40,000. We like beaches and historical places. We don't want too much walking..."
+            placeholder="Tell Nexora where you want to go, who you are traveling with, your budget, and preferences..."
             style={{ width: "100%", resize: "vertical", fontSize: "14px", padding: "10px 14px", lineHeight: "1.5" }}
           />
         </div>
@@ -138,12 +169,24 @@ export const TripForm: React.FC<TripFormProps> = ({ onGenerate, isLoading }) => 
               <Compass size={14} /> Destination
             </label>
             <select
-              value={destination}
-              onChange={(e) => setDestination(e.target.value)}
-              style={{ width: "100%", background: "white" }}
+              value={destinationChoice}
+              onChange={(e) => setDestinationChoice(e.target.value)}
+              style={{ width: "100%", background: "white", marginBottom: destinationChoice === "custom" ? "8px" : "0" }}
             >
-              <option value="Goa">Goa, India</option>
+              {PRESET_DESTINATIONS.map((d) => (
+                <option key={d.value} value={d.value}>{d.label}</option>
+              ))}
             </select>
+            {destinationChoice === "custom" && (
+              <input
+                type="text"
+                placeholder="Type city name (e.g. Manali, Delhi)..."
+                value={customDestination}
+                onChange={(e) => setCustomDestination(e.target.value)}
+                style={{ width: "100%", fontSize: "13px" }}
+                autoFocus
+              />
+            )}
           </div>
 
           <div>
@@ -269,7 +312,7 @@ export const TripForm: React.FC<TripFormProps> = ({ onGenerate, isLoading }) => 
             }}
           >
             <Sparkles size={18} />
-            {isLoading ? "Optimizing Schedule & Routes..." : "Generate Optimized Itinerary"}
+            {isLoading ? "Optimizing Schedule & Routes..." : `Generate ${effectiveDestination} Itinerary`}
           </button>
         </div>
       </form>
